@@ -1,17 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_STARSHIP_SUPABASE_URL!;
-  const supabaseKey = process.env.NEXT_PUBLIC_STARSHIP_SUPABASE_ANON_KEY!;
-  return createClient(supabaseUrl, supabaseKey);
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_STARSHIP_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_STARSHIP_SUPABASE_ANON_KEY!;
 
-export async function initDb() {
-  console.log("Tables should be created via Supabase SQL Editor");
-}
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function getUserByPhone(phone: string) {
-  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('teachers_bio')
     .select('step, errors, deped_id, school_id, first_name, middle_name, last_name, suffix_name, sex, age, phone_number')
@@ -22,20 +16,7 @@ export async function getUserByPhone(phone: string) {
   return data || null;
 }
 
-export async function getUserByDepedId(depedId: string) {
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from('teachers_bio')
-    .select('*')
-    .eq('deped_id', depedId)
-    .single();
-  
-  if (error && error.code !== 'PGRST116') throw error;
-  return data || null;
-}
-
 export async function createUser(phone: string) {
-  const supabase = getSupabaseClient();
   const tempId = `TEMP-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
   const { data, error } = await supabase
@@ -49,7 +30,6 @@ export async function createUser(phone: string) {
 }
 
 export async function updateBioByPhone(phone: string, field: string, value: string | null, nextStep: number) {
-  const supabase = getSupabaseClient();
   const allowedFields = ['deped_id', 'school_id', 'first_name', 'middle_name', 'last_name', 'suffix_name', 'sex', 'age'];
   if (!allowedFields.includes(field)) throw new Error(`Invalid field: ${field}`);
   
@@ -64,7 +44,6 @@ export async function updateBioByPhone(phone: string, field: string, value: stri
 }
 
 export async function createProfessionalRecord(depedId: string) {
-  const supabase = getSupabaseClient();
   const { error } = await supabase
     .from('teachers_professional')
     .insert({ teacher_id: depedId });
@@ -73,7 +52,6 @@ export async function createProfessionalRecord(depedId: string) {
 }
 
 export async function updateProfessional(depedId: string, field: string, value: any) {
-  const supabase = getSupabaseClient();
   const allowedFields = ['years_experience', 'teaching_level', 'role_position', 'specialization', 'is_internet_access', 'device_count'];
   if (!allowedFields.includes(field)) throw new Error(`Invalid field: ${field}`);
   
@@ -86,7 +64,6 @@ export async function updateProfessional(depedId: string, field: string, value: 
 }
 
 export async function updateStep(depedId: string, step: number) {
-  const supabase = getSupabaseClient();
   const { error } = await supabase
     .from('teachers_bio')
     .update({ step, errors: 0 })
@@ -96,7 +73,6 @@ export async function updateStep(depedId: string, step: number) {
 }
 
 export async function incrementError(depedId: string) {
-  const supabase = getSupabaseClient();
   const { data: current, error: fetchError } = await supabase
     .from('teachers_bio')
     .select('errors')
@@ -116,28 +92,18 @@ export async function incrementError(depedId: string) {
 }
 
 export async function getAllSchools() {
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase.from('schools').select('*');
+  const { data, error } = await supabase.from('schools').select('*', { count: 'exact' });
   if (error) throw error;
   return data || [];
 }
 
 export async function getAllTeachersBio() {
-  const supabase = getSupabaseClient();
-  console.log("[DB] Fetching teachers_bio...");
-  console.log("[DB] URL:", process.env.NEXT_PUBLIC_STARSHIP_SUPABASE_URL);
-  
   const { data, error } = await supabase.from('teachers_bio').select('*');
-  
-  console.log("[DB] Result count:", data?.length || 0);
-  console.log("[DB] Error:", error);
-  
   if (error) throw error;
   return data || [];
 }
 
 export async function getAllTeachersProfessional() {
-  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('teachers_professional')
     .select('*, teachers_bio(first_name, last_name)');
@@ -156,7 +122,6 @@ export async function getAllTeachersProfessional() {
 }
 
 export async function getAllQualifications() {
-  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('qualifications')
     .select('*, teachers_bio(first_name, last_name)');
@@ -173,7 +138,6 @@ export async function getAllQualifications() {
 }
 
 export async function getAllStarEvents() {
-  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('star_events')
     .select('*, teachers_bio(first_name, last_name)');

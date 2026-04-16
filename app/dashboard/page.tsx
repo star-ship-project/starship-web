@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/db";
 
 export const dynamic = 'force-dynamic';
 
@@ -67,29 +68,52 @@ export default function Dashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const cacheBust = `?t=${Date.now()}`;
-      
       if (activeView === "schools") {
-        const res = await fetch(`${baseUrl}/api/schools${cacheBust}`);
-        const data = await res.json();
-        setSchools(data);
+        const { data, error } = await supabase.from('schools').select('*');
+        if (!error) setSchools(data || []);
       } else if (activeView === "teachers-bio") {
-        const res = await fetch(`${baseUrl}/api/teachers-bio${cacheBust}`);
-        const data = await res.json();
-        setTeachersBio(data);
+        const { data, error } = await supabase.from('teachers_bio').select('*');
+        if (!error) setTeachersBio(data || []);
       } else if (activeView === "teachers-professional") {
-        const res = await fetch(`${baseUrl}/api/teachers-professional${cacheBust}`);
-        const data = await res.json();
-        setTeachersProfessional(data);
+        const { data, error } = await supabase
+          .from('teachers_professional')
+          .select('*, teachers_bio(first_name, last_name)');
+        if (!error) {
+          setTeachersProfessional((data || []).map((row: any) => ({
+            teacher_name: `${row.teachers_bio?.first_name || ''} ${row.teachers_bio?.last_name || ''}`.trim(),
+            years_experience: row.years_experience,
+            teaching_level: row.teaching_level,
+            role_position: row.role_position,
+            specialization: row.specialization,
+            is_internet_access: row.is_internet_access,
+            device_count: row.device_count
+          })));
+        }
       } else if (activeView === "qualifications") {
-        const res = await fetch(`${baseUrl}/api/qualifications${cacheBust}`);
-        const data = await res.json();
-        setQualifications(data);
+        const { data, error } = await supabase
+          .from('qualifications')
+          .select('*, teachers_bio(first_name, last_name)');
+        if (!error) {
+          setQualifications((data || []).map((row: any) => ({
+            teacher_name: `${row.teachers_bio?.first_name || ''} ${row.teachers_bio?.last_name || ''}`.trim(),
+            cert_name: row.cert_name,
+            category: row.category,
+            awarding_body: row.awarding_body,
+            date_obtained: row.date_obtained
+          })));
+        }
       } else if (activeView === "star-events") {
-        const res = await fetch(`${baseUrl}/api/star-events${cacheBust}`);
-        const data = await res.json();
-        setStarEvents(data);
+        const { data, error } = await supabase
+          .from('star_events')
+          .select('*, teachers_bio(first_name, last_name)');
+        if (!error) {
+          setStarEvents((data || []).map((row: any) => ({
+            teacher_name: `${row.teachers_bio?.first_name || ''} ${row.teachers_bio?.last_name || ''}`.trim(),
+            event_title: row.event_title,
+            event_type: row.event_type,
+            event_date: row.event_date
+          })));
+        }
       }
     } catch (error) {
       console.error("Failed to fetch data:", error);

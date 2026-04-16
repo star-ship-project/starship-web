@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/api/schools",
+      "headers": {
+        "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate"
+      }
+    },
+    {
+      "src": "/api/qualifications",
+      "headers": {
+        "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate"
+      }
+    },
+    {
+      "src": "/api/star-events",
+      "headers": {
+        "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate"
+      }
+    },
+    {
+      "src": "/api/teachers-bio",
+      "headers": {
+        "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate"
+      }
+    },
+    {
+      "src": "/api/teachers-professional",
+      "headers": {
+        "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate"
+      }
+    }
+  ]
+}

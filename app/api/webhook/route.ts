@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { processSurvey } from "@/lib/survey";
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
@@ -18,7 +21,6 @@ export async function POST(request: Request) {
     console.log("\n--- INCOMING WEBHOOK ---");
     console.log(`[DEBUG] Phone: ${phone}, Text: ${text}`);
 
-    // Ignore messages from the bot's own number
     if (phone === fromNumber) {
       console.log("[DEBUG] Ignoring message from FROM_NUMBER");
       return NextResponse.json({ status: "ignored", reason: "from own number" });
@@ -35,6 +37,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ status: "error", message: "Survey processing failed" }, { status: 500 });
     }
     
+    revalidateTag("dashboard-data");
     return NextResponse.json({ status: "success" });
 
   } catch (error) {

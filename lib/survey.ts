@@ -1,6 +1,5 @@
 const DISPLAY_MESSAGES = {
-  1: "Good Day! This is the STAR's data collection system!",
-  2: "Identity confirmed!"
+  1: "Good Day! This is the STAR's data collection system!"
 };
 
 const SURVEY_QUESTIONS = {
