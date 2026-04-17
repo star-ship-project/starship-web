@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation"; // Tactical Router Injection
 import { supabase } from "@/lib/db";
 import { ViewType, School, TeacherBio, TeacherProfessional, Qualification, StarEvent } from "./types";
 
@@ -19,6 +20,7 @@ import StarEventsTable from "./components/tables/StarEventsTable";
 export const dynamic = 'force-dynamic';
 
 export default function Dashboard() {
+  const router = useRouter();
   const [activeView, setActiveView] = useState<ViewType>("map");
   const [schools, setSchools] = useState<School[]>([]);
   const [teachersBio, setTeachersBio] = useState<TeacherBio[]>([]);
@@ -28,6 +30,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   
   const [mapRefreshTrigger, setMapRefreshTrigger] = useState(0);
+  
+  // 1. Tactical Logout State
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -88,6 +93,14 @@ export default function Dashboard() {
     setLoading(false);
   };
 
+  // 2. The Tactical Disconnect Sequence
+  const handleLogout = () => {
+    setIsLoggingOut(true); 
+    setTimeout(() => {
+      router.push("/"); 
+    }, 1500); 
+  };
+
   const renderContent = () => {
     if (activeView === "map") {
       return (
@@ -112,14 +125,48 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="app-window">
-      <Header onRefresh={fetchData} />
-      <div className="app-body">
-        <Sidebar activeView={activeView} setActiveView={setActiveView} />
-        <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "auto" }}>
-          {renderContent()}
-        </main>
+    <>
+      <div className="app-window" style={{ filter: isLoggingOut ? 'blur(4px)' : 'none', transition: 'filter 0.5s ease-in-out' }}>
+        {/* 3. Pass the command down to the header */}
+        <Header onRefresh={fetchData} onLogout={handleLogout} />
+        <div className="app-body">
+          <Sidebar activeView={activeView} setActiveView={setActiveView} />
+          <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "auto" }}>
+            {renderContent()}
+          </main>
+        </div>
       </div>
-    </div>
+
+      {/* 4. The Full-Screen Shutdown HUD Overlay */}
+      {isLoggingOut && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+          zIndex: 99999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <div className="animate-pulse" style={{ color: '#ef4444', fontSize: '28px', fontWeight: 'bold', letterSpacing: '0.3em' }}>
+            SYSTEMS DISCONNECTING...
+          </div>
+          <div style={{ color: '#94a3b8', marginTop: '16px', fontFamily: 'monospace', letterSpacing: '0.1em' }}>
+            Severing secure uplink to Starship Command
+          </div>
+          {/* Tactical Progress Bar */}
+          <div style={{ width: '300px', height: '2px', backgroundColor: '#1e293b', marginTop: '30px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', backgroundColor: '#ef4444', transition: 'width 1.5s linear', width: '100%', animation: 'shrinkBar 1.5s linear forwards' }} />
+          </div>
+          <style>{`
+            @keyframes shrinkBar {
+              0% { width: 100%; }
+              100% { width: 0%; }
+            }
+          `}</style>
+        </div>
+      )}
+    </>
   );
 }

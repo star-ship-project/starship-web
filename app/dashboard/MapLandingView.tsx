@@ -61,7 +61,7 @@ export default function MapLandingView({ refreshTrigger = 0 }: MapLandingViewPro
         behavior: 'smooth', 
         block: 'start' 
       });
-    }, 2100);
+    }, 2500);
 
     // 3. TACTICAL DELAY: Force the 'Deep Extraction' sequence to remain visible for exactly 2 seconds
     await new Promise(resolve => setTimeout(resolve, 1500));
