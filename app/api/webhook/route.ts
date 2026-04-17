@@ -19,7 +19,9 @@ export async function POST(request: Request) {
     const fromNumber = process.env.FROM_NUMBER;
 
     console.log("\n--- INCOMING WEBHOOK ---");
-    console.log(`[DEBUG] Phone: ${phone}, Text: ${text}`);
+    console.log(`[DEBUG] Phone: ${phone}, Text: "${text}"`);
+    console.log(`[DEBUG] FromNumber env: "${fromNumber}"`);
+    console.log(`[DEBUG] Phone === fromNumber:`, phone === fromNumber);
 
     if (phone === fromNumber) {
       console.log("[DEBUG] Ignoring message from FROM_NUMBER");
