@@ -4,11 +4,18 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/db";
 import MapLandingView from "./MapLandingView"; // Implemented the Map Import
+import Image from "next/image";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // Added "map" to the ViewType
-type ViewType = "map" | "schools" | "teachers-bio" | "teachers-professional" | "qualifications" | "star-events";
+type ViewType =
+  | "map"
+  | "schools"
+  | "teachers-bio"
+  | "teachers-professional"
+  | "qualifications"
+  | "star-events";
 
 interface School {
   school_id: string;
@@ -59,7 +66,9 @@ export default function Dashboard() {
   const [activeView, setActiveView] = useState<ViewType>("map");
   const [schools, setSchools] = useState<School[]>([]);
   const [teachersBio, setTeachersBio] = useState<TeacherBio[]>([]);
-  const [teachersProfessional, setTeachersProfessional] = useState<TeacherProfessional[]>([]);
+  const [teachersProfessional, setTeachersProfessional] = useState<
+    TeacherProfessional[]
+  >([]);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
   const [starEvents, setStarEvents] = useState<StarEvent[]>([]);
   const [loading, setLoading] = useState(false); // Map loads its own data, start false
@@ -75,50 +84,59 @@ export default function Dashboard() {
     setLoading(true);
     try {
       if (activeView === "schools") {
-        const { data, error } = await supabase.from('schools').select('*');
+        const { data, error } = await supabase.from("schools").select("*");
         if (!error) setSchools(data || []);
       } else if (activeView === "teachers-bio") {
-        const { data, error } = await supabase.from('teachers_bio').select('*');
+        const { data, error } = await supabase.from("teachers_bio").select("*");
         if (!error) setTeachersBio(data || []);
       } else if (activeView === "teachers-professional") {
         const { data, error } = await supabase
-          .from('teachers_professional')
-          .select('*, teachers_bio(first_name, last_name)');
+          .from("teachers_professional")
+          .select("*, teachers_bio(first_name, last_name)");
         if (!error) {
-          setTeachersProfessional((data || []).map((row: any) => ({
-            teacher_name: `${row.teachers_bio?.first_name || ''} ${row.teachers_bio?.last_name || ''}`.trim(),
-            years_experience: row.years_experience,
-            teaching_level: row.teaching_level,
-            role_position: row.role_position,
-            specialization: row.specialization,
-            is_internet_access: row.is_internet_access,
-            device_count: row.device_count
-          })));
+          setTeachersProfessional(
+            (data || []).map((row: any) => ({
+              teacher_name:
+                `${row.teachers_bio?.first_name || ""} ${row.teachers_bio?.last_name || ""}`.trim(),
+              years_experience: row.years_experience,
+              teaching_level: row.teaching_level,
+              role_position: row.role_position,
+              specialization: row.specialization,
+              is_internet_access: row.is_internet_access,
+              device_count: row.device_count,
+            })),
+          );
         }
       } else if (activeView === "qualifications") {
         const { data, error } = await supabase
-          .from('qualifications')
-          .select('*, teachers_bio(first_name, last_name)');
+          .from("qualifications")
+          .select("*, teachers_bio(first_name, last_name)");
         if (!error) {
-          setQualifications((data || []).map((row: any) => ({
-            teacher_name: `${row.teachers_bio?.first_name || ''} ${row.teachers_bio?.last_name || ''}`.trim(),
-            cert_name: row.cert_name,
-            category: row.category,
-            awarding_body: row.awarding_body,
-            date_obtained: row.date_obtained
-          })));
+          setQualifications(
+            (data || []).map((row: any) => ({
+              teacher_name:
+                `${row.teachers_bio?.first_name || ""} ${row.teachers_bio?.last_name || ""}`.trim(),
+              cert_name: row.cert_name,
+              category: row.category,
+              awarding_body: row.awarding_body,
+              date_obtained: row.date_obtained,
+            })),
+          );
         }
       } else if (activeView === "star-events") {
         const { data, error } = await supabase
-          .from('star_events')
-          .select('*, teachers_bio(first_name, last_name)');
+          .from("star_events")
+          .select("*, teachers_bio(first_name, last_name)");
         if (!error) {
-          setStarEvents((data || []).map((row: any) => ({
-            teacher_name: `${row.teachers_bio?.first_name || ''} ${row.teachers_bio?.last_name || ''}`.trim(),
-            event_title: row.event_title,
-            event_type: row.event_type,
-            event_date: row.event_date
-          })));
+          setStarEvents(
+            (data || []).map((row: any) => ({
+              teacher_name:
+                `${row.teachers_bio?.first_name || ""} ${row.teachers_bio?.last_name || ""}`.trim(),
+              event_title: row.event_title,
+              event_type: row.event_type,
+              event_date: row.event_date,
+            })),
+          );
         }
       }
     } catch (error) {
@@ -143,7 +161,9 @@ export default function Dashboard() {
 
     // 2. Otherwise, check for loading or render standard tables
     if (loading) {
-      return <div style={{ padding: "30px", color: "#94a3b8" }}>Loading data...</div>;
+      return (
+        <div style={{ padding: "30px", color: "#94a3b8" }}>Loading data...</div>
+      );
     }
 
     switch (activeView) {
@@ -163,7 +183,9 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {schools.length === 0 ? (
-                  <tr><td colSpan={5}>No data available</td></tr>
+                  <tr>
+                    <td colSpan={5}>No data available</td>
+                  </tr>
                 ) : (
                   schools.map((item) => (
                     <tr key={item.school_id}>
@@ -197,13 +219,17 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {teachersBio.length === 0 ? (
-                  <tr><td colSpan={6}>No data available</td></tr>
+                  <tr>
+                    <td colSpan={6}>No data available</td>
+                  </tr>
                 ) : (
                   teachersBio.map((item) => (
                     <tr key={item.deped_id}>
                       <td>{item.deped_id}</td>
                       <td>{item.school_id}</td>
-                      <td>{item.first_name} {item.last_name}</td>
+                      <td>
+                        {item.first_name} {item.last_name}
+                      </td>
                       <td>{item.sex}</td>
                       <td>{item.age}</td>
                       <td>{item.phone_number}</td>
@@ -233,7 +259,9 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {teachersProfessional.length === 0 ? (
-                  <tr><td colSpan={7}>No data available</td></tr>
+                  <tr>
+                    <td colSpan={7}>No data available</td>
+                  </tr>
                 ) : (
                   teachersProfessional.map((item, idx) => (
                     <tr key={idx}>
@@ -268,7 +296,9 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {qualifications.length === 0 ? (
-                  <tr><td colSpan={5}>No data available</td></tr>
+                  <tr>
+                    <td colSpan={5}>No data available</td>
+                  </tr>
                 ) : (
                   qualifications.map((item, idx) => (
                     <tr key={idx}>
@@ -300,7 +330,9 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {starEvents.length === 0 ? (
-                  <tr><td colSpan={4}>No data available</td></tr>
+                  <tr>
+                    <td colSpan={4}>No data available</td>
+                  </tr>
                 ) : (
                   starEvents.map((item, idx) => (
                     <tr key={idx}>
@@ -321,11 +353,22 @@ export default function Dashboard() {
   return (
     <div className="app-window">
       <header className="top-banner">
-        <div className="header-titles">
-          <h1>STAR S.H.I.P</h1>
-          <div className="sub-header">STAR SMS Hub for Information Processing</div>
+        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+          <Image
+            src="/logo.svg"
+            alt="STAR S.H.I.P. Logo"
+            width={60}
+            height={60}
+            priority
+          />
+          <div className="header-titles">
+            <h1>STAR S.H.I.P.</h1>
+            <div className="sub-header">
+              STAR SMS Hub for Information Processing
+            </div>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: "flex", gap: "10px" }}>
           <button className="refresh-btn" onClick={() => fetchData()}>
             Refresh
           </button>
@@ -376,7 +419,14 @@ export default function Dashboard() {
           </button>
         </aside>
 
-        <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "auto" }}>
+        <main
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "auto",
+          }}
+        >
           {renderContent()}
         </main>
       </div>

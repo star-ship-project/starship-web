@@ -44,13 +44,11 @@ export default function LoginPage() {
   return (
     <div className="login-container">
       <div className="login-box">
-        <h2>STAR S.H.I.P</h2>
+        <h2>STAR S.H.I.P.</h2>
         <p>STAR SMS Hub for Information Processing</p>
 
         <form onSubmit={handleSubmit}>
-          <div
-            className={`auth-error ${showAuthError ? "show" : ""}`}
-          >
+          <div className={`auth-error ${showAuthError ? "show" : ""}`}>
             Authentication Failed: Invalid Username or Security Code.
           </div>
 
