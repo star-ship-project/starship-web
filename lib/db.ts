@@ -63,6 +63,17 @@ export async function updateProfessional(depedId: string, field: string, value: 
   if (error) throw error;
 }
 
+export async function getProfessionalById(teacherId: string) {
+  const { data, error } = await supabase
+    .from('teachers_professional')
+    .select('*')
+    .eq('teacher_id', teacherId)
+    .single();
+  
+  if (error && error.code !== 'PGRST116') throw error;
+  return data || null;
+}
+
 export async function updateStep(depedId: string, step: number) {
   const { error } = await supabase
     .from('teachers_bio')
