@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/db";
+import MapLandingView from "./MapLandingView"; // Implemented the Map Import
 
 export const dynamic = 'force-dynamic';
 
-type ViewType = "schools" | "teachers-bio" | "teachers-professional" | "qualifications" | "star-events";
+// Added "map" to the ViewType
+type ViewType = "map" | "schools" | "teachers-bio" | "teachers-professional" | "qualifications" | "star-events";
 
 interface School {
   school_id: string;
@@ -53,19 +55,23 @@ interface StarEvent {
 
 export default function Dashboard() {
   const router = useRouter();
-  const [activeView, setActiveView] = useState<ViewType>("schools");
+  // Set default view to "map" so it acts as the landing page
+  const [activeView, setActiveView] = useState<ViewType>("map");
   const [schools, setSchools] = useState<School[]>([]);
   const [teachersBio, setTeachersBio] = useState<TeacherBio[]>([]);
   const [teachersProfessional, setTeachersProfessional] = useState<TeacherProfessional[]>([]);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
   const [starEvents, setStarEvents] = useState<StarEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Map loads its own data, start false
 
   useEffect(() => {
     fetchData();
   }, [activeView]);
 
   const fetchData = async () => {
+    // Skip general table fetching if the active view is the Map (it handles its own queries)
+    if (activeView === "map") return;
+
     setLoading(true);
     try {
       if (activeView === "schools") {
@@ -126,6 +132,16 @@ export default function Dashboard() {
   };
 
   const renderContent = () => {
+    // 1. Return the Map immediately if it is the active view
+    if (activeView === "map") {
+      return (
+        <div style={{ padding: "20px", height: "100%", width: "100%" }}>
+          <MapLandingView />
+        </div>
+      );
+    }
+
+    // 2. Otherwise, check for loading or render standard tables
     if (loading) {
       return <div style={{ padding: "30px", color: "#94a3b8" }}>Loading data...</div>;
     }
@@ -321,6 +337,13 @@ export default function Dashboard() {
 
       <div className="app-body">
         <aside className="sidebar">
+          {/* Added the Tactical Map button at the top of the sidebar */}
+          <button
+            className={`nav-btn ${activeView === "map" ? "active" : ""}`}
+            onClick={() => setActiveView("map")}
+          >
+            Tactical Map
+          </button>
           <button
             className={`nav-btn ${activeView === "schools" ? "active" : ""}`}
             onClick={() => setActiveView("schools")}
@@ -353,7 +376,7 @@ export default function Dashboard() {
           </button>
         </aside>
 
-        <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "auto" }}>
           {renderContent()}
         </main>
       </div>
