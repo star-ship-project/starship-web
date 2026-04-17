@@ -10,7 +10,6 @@ import {
   RegionSummary 
 } from "@/lib/mapService";
 
-// Dynamic import with forced 800px placeholder
 const MapBase = dynamic(() => import('./components/MapBase'), { 
   ssr: false,
   loading: () => (
@@ -20,24 +19,54 @@ const MapBase = dynamic(() => import('./components/MapBase'), {
   )
 });
 
-export default function MapLandingView() {
+interface MapLandingViewProps {
+  refreshTrigger?: number;
+}
+
+export default function MapLandingView({ refreshTrigger = 0 }: MapLandingViewProps) {
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [summaryData, setSummaryData] = useState<RegionSummary[]>([]);
   const [regionDetails, setRegionDetails] = useState<any>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  
+  const [isMapRefreshing, setIsMapRefreshing] = useState(false);
 
   useEffect(() => {
     async function loadSummaries() {
+      setIsMapRefreshing(true); 
       const data = await fetchRegionSummaries();
       setSummaryData(data);
+      setIsMapRefreshing(false); 
     }
+    
+    if (refreshTrigger > 0) {
+      setHoveredRegion(null);
+      setSelectedRegion(null);
+      setRegionDetails(null);
+    }
+
     loadSummaries();
-  }, []);
+  }, [refreshTrigger]);
 
   const handleRegionClick = async (regionName: string) => {
+    // 1. Instantly wipe old data to force the Loading Box to appear
     setSelectedRegion(regionName);
+    setRegionDetails(null);
     setLoadingDetails(true);
+
+    // 2. Instantly pan the camera down so the user can watch the extraction
+    setTimeout(() => {
+      document.getElementById('details-section')?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }, 2100);
+
+    // 3. TACTICAL DELAY: Force the 'Deep Extraction' sequence to remain visible for exactly 2 seconds
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // 4. Fetch the fresh intelligence and remove the loading box
     const details = await fetchRegionDetails(regionName);
     setRegionDetails(details);
     setLoadingDetails(false);
@@ -50,7 +79,6 @@ export default function MapLandingView() {
   return (
     <div className="flex flex-col w-full min-h-screen bg-slate-950 p-4 space-y-6">
       
-      {/* BULLETPROOF LOCK: Explicit inline styles block any 0px collapse */}
       <div style={{ 
         position: 'relative', 
         width: '100%', 
@@ -62,12 +90,29 @@ export default function MapLandingView() {
         overflow: 'hidden'
       }}>
         
+        {isMapRefreshing && (
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(15, 23, 42, 0.7)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'auto' 
+          }}>
+            <div className="animate-pulse" style={{ color: '#38bdf8', fontSize: '18px', fontWeight: 'bold', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+              Pinging Supabase... Re-establishing Uplink
+            </div>
+          </div>
+        )}
+
         <MapBase 
           onRegionHover={setHoveredRegion} 
           onRegionClick={handleRegionClick} 
+          resetTrigger={refreshTrigger}
         />
 
-        {/* TOP RIGHT SUMMARY - Forced absolute coordinates and inline flexbox spacing */}
         {hoveredRegion && (
           <div style={{ position: 'absolute', top: '24px', right: '24px', zIndex: 9999, pointerEvents: 'none' }}>
             <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '2px solid rgba(14, 165, 233, 0.5)', padding: '20px', borderRadius: '8px', boxShadow: '0 0 20px rgba(14, 165, 233, 0.3)', backdropFilter: 'blur(8px)', minWidth: '260px' }}>
@@ -101,10 +146,10 @@ export default function MapLandingView() {
         )}
       </div>
 
-      {/* BOTTOM TABLE SECTION */}
-      <div id="details-section" className="w-full">
+      {/* TACTICAL LOCK: Added min-h-[400px] to prevent DOM collapse when swapping tables */}
+      <div id="details-section" className="w-full min-h-[400px]">
         {loadingDetails ? (
-          <div className="flex items-center justify-center p-20 bg-slate-900/50 rounded-xl border border-slate-800">
+          <div className="flex items-center justify-center p-20 bg-slate-900/50 rounded-xl border border-slate-800 h-full">
             <div className="text-sky-500 font-mono animate-pulse tracking-widest uppercase">
               Executing Deep Data Extraction...
             </div>
@@ -113,7 +158,7 @@ export default function MapLandingView() {
           <RegionDetailsTable regionName={selectedRegion} data={regionDetails} />
         ) : (
           <div className="p-12 text-center bg-slate-900/30 rounded-xl border border-dashed border-slate-800">
-            <p className="text-slate-500 uppercase tracking-widest text-sm">Select a tactical sector on the map to view granular personnel data</p>
+            <p className="text-slate-500 uppercase tracking-widest text-sm">Select a sector on the map to view granular personnel data</p>
           </div>
         )}
       </div>

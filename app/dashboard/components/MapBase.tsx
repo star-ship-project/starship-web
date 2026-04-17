@@ -6,9 +6,10 @@ import { MapContainer, GeoJSON } from "react-leaflet";
 interface MapBaseProps {
   onRegionHover: (regionName: string | null) => void;
   onRegionClick: (regionName: string) => void;
+  resetTrigger?: number; // TACTICAL SYNC: Added listener for the global reset
 }
 
-export default function MapBase({ onRegionHover, onRegionClick }: MapBaseProps) {
+export default function MapBase({ onRegionHover, onRegionClick, resetTrigger = 0 }: MapBaseProps) {
   const [geoData, setGeoData] = useState<any>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   
@@ -73,6 +74,14 @@ export default function MapBase({ onRegionHover, onRegionClick }: MapBaseProps) 
       }, false); 
     });
   };
+
+  // RESET: Listen for the global refresh ping to wipe visual highlights
+  useEffect(() => {
+    if (resetTrigger > 0) {
+      resetAllRegions();
+      currentHoveredRegionRef.current = null;
+    }
+  }, [resetTrigger]);
 
   const onEachRegion = (feature: any, layer: any) => {
     const regionName = feature.properties.parent_region || "Unknown Region";
@@ -154,7 +163,7 @@ export default function MapBase({ onRegionHover, onRegionClick }: MapBaseProps) 
           pointerEvents: 'auto'
         }}>
            <h4 style={{ color: 'white', fontSize: '12px', fontWeight: 'bold', marginBottom: '12px', letterSpacing: '0.05em', borderBottom: '1px solid #334155', paddingBottom: '8px', textTransform: 'uppercase' }}>
-             Tactical Sectors
+             Sectors Legend:
            </h4>
            
            {/* Replaced Flex-Col with a 2-Column Grid */}
